@@ -1,7 +1,7 @@
-"YourRP"
+"MafiaRP"
 {
 	"base"		"sandbox"
-	"title"		"YourRP"
+	"title"		"1980's Mafia Roleplay"
 	"maps"		"^rp_"
 	"category"	"rp"
 	"menusystem"	"1"
