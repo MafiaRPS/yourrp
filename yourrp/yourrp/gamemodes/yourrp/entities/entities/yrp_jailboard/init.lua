@@ -2,7 +2,7 @@
 AddCSLuaFile("cl_init.lua")
 AddCSLuaFile("shared.lua")
 include("shared.lua")
-util.AddNetworkString("nws_yrp_openLawBoard")
+YRP:AddNetworkString("nws_yrp_openLawBoard")
 function ENT:Initialize()
 	self:SetModel("models/props_combine/combine_intmonitor001.mdl")
 	self:PhysicsInit(SOLID_VPHYSICS)
@@ -38,11 +38,13 @@ end
 function ENT:Think()
 end
 
-util.AddNetworkString("nws_yrp_jail")
+YRP:AddNetworkString("nws_yrp_jail")
 net.Receive(
 	"nws_yrp_jail",
 	function(len, ply)
+		if not ply:GetYRPBool("bool_canusewarnsystem", false) then return end
 		local target = net.ReadEntity()
+		if not IsValid(target) then return end
 		local jail = YRP_SQL_SELECT("yrp_jail", "*", "SteamID = '" .. target:YRPSteamID() .. "'")
 		if IsNotNilAndNotFalse(jail) then
 			jail = jail[1]
@@ -52,11 +54,13 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_unjail")
+YRP:AddNetworkString("nws_yrp_unjail")
 net.Receive(
 	"nws_yrp_unjail",
 	function(len, ply)
+		if not ply:GetYRPBool("bool_canusewarnsystem", false) then return end
 		local target = net.ReadEntity()
+		if not IsValid(target) then return end
 		YRP_SQL_DELETE_FROM("yrp_jail", "SteamID = '" .. target:YRPSteamID() .. "'")
 		teleportToReleasepoint(target)
 	end

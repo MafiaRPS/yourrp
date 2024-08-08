@@ -57,6 +57,15 @@ YRP_SQL_ADD_COLUMN(DATABASE_NAME, "slot_sidearm", "TEXT DEFAULT ''")
 YRP_SQL_ADD_COLUMN(DATABASE_NAME, "slot_gadget", "TEXT DEFAULT ''")
 -- Specs
 YRP_SQL_ADD_COLUMN(DATABASE_NAME, "string_specializations", "TEXT DEFAULT ''")
+function YRPIsOwningCharacter(ply, charId)
+	if ply == nil then return false end
+	if charId == nil then return false end
+	local tab = YRP_SQL_SELECT("yrp_characters", "uniqueID, SteamID", "uniqueID = '" .. charId .. "'")
+	if tab and tab[1] and ply:SteamID() == tab[1].SteamID then return true end
+
+	return false
+end
+
 function YRPGetSteamIdByCharId(charId)
 	if charId then
 		local tab = YRP_SQL_SELECT("yrp_characters", "uniqueID, SteamID", "uniqueID = '" .. charId .. "'")
@@ -122,7 +131,7 @@ function YRPGetCharSWEPS(ply)
 	return tab
 end
 
-util.AddNetworkString("nws_yrp_get_sweps_role_art")
+YRP:AddNetworkString("nws_yrp_get_sweps_role_art")
 net.Receive(
 	"nws_yrp_get_sweps_role_art",
 	function(len, ply)
@@ -176,7 +185,7 @@ function YRPHasWeapon(ply, cname)
 	return false
 end
 
-util.AddNetworkString("nws_yrp_slot_swep_add")
+YRP:AddNetworkString("nws_yrp_slot_swep_add")
 net.Receive(
 	"nws_yrp_slot_swep_add",
 	function(len, ply)
@@ -193,7 +202,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_slot_swep_rem")
+YRP:AddNetworkString("nws_yrp_slot_swep_rem")
 net.Receive(
 	"nws_yrp_slot_swep_rem",
 	function(len, ply)
@@ -236,7 +245,7 @@ function Player:YRPUpdateAppearance()
 end
 
 function Player:YRPCharacterLoadout()
-	YRP.msg("debug", "[CharacterLoadout] " .. self:YRPName())
+	YRP:msg("debug", "[CharacterLoadout] " .. self:YRPName())
 	local chatab = self:YRPGetCharacterTable()
 	local plytab = self:GetPlyTab()
 	if plytab then
@@ -359,11 +368,11 @@ function Player:SetRPName(str, from)
 
 		newname = newname
 		self:SetYRPString("rpname", newname)
-		YRP.msg("note", oldname .. " changed name to " .. newname, true)
+		YRP:msg("note", oldname .. " changed name to " .. newname, true)
 	end
 end
 
-util.AddNetworkString("nws_yrp_update_backpack")
+YRP:AddNetworkString("nws_yrp_update_backpack")
 net.Receive(
 	"nws_yrp_update_backpack",
 	function(len, ply)
@@ -392,7 +401,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_update_slot_backpack")
+YRP:AddNetworkString("nws_yrp_update_slot_backpack")
 net.Receive(
 	"nws_yrp_update_slot_backpack",
 	function(len, ply)
@@ -416,7 +425,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_moneyreset")
+YRP:AddNetworkString("nws_yrp_moneyreset")
 net.Receive(
 	"nws_yrp_moneyreset",
 	function(len, ply)
@@ -442,7 +451,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_change_rpdescription")
+YRP:AddNetworkString("nws_yrp_change_rpdescription")
 net.Receive(
 	"nws_yrp_change_rpdescription",
 	function(len, ply)
@@ -461,7 +470,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_change_birthday")
+YRP:AddNetworkString("nws_yrp_change_birthday")
 net.Receive(
 	"nws_yrp_change_birthday",
 	function(len, ply)
@@ -477,7 +486,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_change_bodyheight")
+YRP:AddNetworkString("nws_yrp_change_bodyheight")
 net.Receive(
 	"nws_yrp_change_bodyheight",
 	function(len, ply)
@@ -493,7 +502,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_change_weight")
+YRP:AddNetworkString("nws_yrp_change_weight")
 net.Receive(
 	"nws_yrp_change_weight",
 	function(len, ply)
@@ -509,9 +518,9 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_get_characters")
-util.AddNetworkString("nws_yrp_delete_own_character")
-util.AddNetworkString("nws_yrp_create_own_character")
+YRP:AddNetworkString("nws_yrp_get_characters")
+YRP:AddNetworkString("nws_yrp_delete_own_character")
+YRP:AddNetworkString("nws_yrp_create_own_character")
 function GetPlayermodelsOfRole(ruid)
 	local role = YRP_SQL_SELECT("yrp_ply_roles", "*", "uniqueID = '" .. tonumber(ruid) .. "'")
 	if IsNotNilAndNotFalse(role) then
@@ -536,7 +545,7 @@ function GetPlayermodelsOfRole(ruid)
 		end
 	end
 
-	YRP.msg("note", "role " .. ruid .. " has no playermodels")
+	YRP:msg("note", "role " .. ruid .. " has no playermodels")
 
 	return ""
 end
@@ -584,7 +593,7 @@ function GetPMTableOfRole(ruid)
 
 		return tab
 	else
-		YRP.msg("note", "role " .. ruid .. " has no playermodels")
+		YRP:msg("note", "role " .. ruid .. " has no playermodels")
 
 		return {}
 	end
@@ -604,7 +613,7 @@ function GetPMsOfCharacter(ply, ruid)
 	return rpms
 end
 
-util.AddNetworkString("nws_yrp_received_chars")
+YRP:AddNetworkString("nws_yrp_received_chars")
 net.Receive(
 	"nws_yrp_received_chars",
 	function(len, ply)
@@ -649,12 +658,12 @@ function SendLoopCharacterList(ply, tab)
 						net.Start("nws_yrp_received_chars")
 						net.Send(ply)
 						ply.sendchars = false
-						--YRP.msg( "note", "Player Send Charlist: " .. tostring( char.c ) .. "/" .. tostring( #tab ) )
+						--YRP:msg( "note", "Player Send Charlist: " .. tostring( char.c ) .. "/" .. tostring( #tab ) )
 						timer.Simple(
 							10,
 							function()
 								if IsValid(ply) and ply.receivedchars == nil then
-									YRP.msg("note", "[" .. ply:SteamName() .. "] not Received Charlist, retry: " .. tostring(char.c) .. "/" .. tostring(#tab))
+									YRP:msg("note", "[" .. ply:SteamName() .. "] not Received Charlist, retry: " .. tostring(char.c) .. "/" .. tostring(#tab))
 									SendLoopCharacterList(ply, tab)
 								end
 							end
@@ -662,11 +671,11 @@ function SendLoopCharacterList(ply, tab)
 					end
 				else
 					if not tab then
-						YRP.msg("error", "[SendLoopCharacterList] tab is invalid: " .. tostring(tab))
+						YRP:msg("error", "[SendLoopCharacterList] tab is invalid: " .. tostring(tab))
 					end
 
 					if not char then
-						YRP.msg("error", "[SendLoopCharacterList] char is invalid: " .. tostring(char))
+						YRP:msg("error", "[SendLoopCharacterList] char is invalid: " .. tostring(char))
 					end
 				end
 			end
@@ -676,7 +685,7 @@ function SendLoopCharacterList(ply, tab)
 	end
 end
 
-util.AddNetworkString("nws_yrp_YRPOpenCharacterCreation")
+YRP:AddNetworkString("nws_yrp_YRPOpenCharacterCreation")
 function YRPSendCharacters(ply, from)
 	if ply:IsBot() then return end
 	YRPSendCharCount(ply)
@@ -722,7 +731,7 @@ function YRPSendCharacters(ply, from)
 					end
 				end
 			else
-				YRP.msg("note", "[YRPSendCharacters] roleid ~= nil or groupid ~= nil")
+				YRP:msg("note", "[YRPSendCharacters] roleid ~= nil or groupid ~= nil")
 			end
 		end
 
@@ -742,7 +751,7 @@ end
 net.Receive(
 	"nws_yrp_get_characters",
 	function(len, ply)
-		YRP.msg("db", ply:YRPName() .. " ask for characters")
+		YRP:msg("db", ply:YRPName() .. " ask for characters")
 		if ply:IsBot() then return end
 		YRPSendCharacters(ply, "nws_yrp_get_characters")
 		if not ply:Alive() then
@@ -759,7 +768,7 @@ net.Receive(
 		if IsNotNilAndNotFalse(charID) then
 			local result = YRP_SQL_DELETE_FROM("yrp_characters", "SteamID = '" .. steamid .. "' AND uniqueID = '" .. tonumber(charID) .. "'") -- can only delete own char
 			if result == nil then
-				YRP.msg("db", "DeleteCharacter: success")
+				YRP:msg("db", "DeleteCharacter: success")
 				ply:KillSilent()
 				if IsNotNilAndNotFalse(steamid) then
 					local _first_character = YRP_SQL_SELECT("yrp_characters", "*", "SteamID = '" .. steamid .. "'")
@@ -775,12 +784,12 @@ net.Receive(
 						YRP_SQL_SELECT("yrp_players", "*", nil)
 					end
 				else
-					YRP.msg("error", "STEAMID FAILED => " .. tostring(steamid) .. " [" .. tostring(ply) .. "]")
+					YRP:msg("error", "STEAMID FAILED => " .. tostring(steamid) .. " [" .. tostring(ply) .. "]")
 				end
 
 				ply:Spawn()
 			else
-				YRP.msg("note", "DeleteCharacter: fail")
+				YRP:msg("note", "DeleteCharacter: fail")
 			end
 
 			YRPSendCharacters(ply, "nws_yrp_delete_own_character")
@@ -829,7 +838,7 @@ function YRPCreateCharacter(ply, tab)
 					)
 
 					if result ~= nil then
-						YRP.msg("error", "[YRPCreateCharacter] failed @Update!")
+						YRP:msg("error", "[YRPCreateCharacter] failed @Update!")
 
 						return false
 					else
@@ -838,17 +847,17 @@ function YRPCreateCharacter(ply, tab)
 						return charid
 					end
 				else
-					YRP.msg("note", "[YRPCreateCharacter] chars failed: " .. tostring(chars))
+					YRP:msg("note", "[YRPCreateCharacter] chars failed: " .. tostring(chars))
 
 					return false
 				end
 			else
-				YRP.msg("error", "[YRPCreateCharacter] failed - char: " .. tostring(char) .. " LastError: " .. YRP_SQL_Show_Last_Error())
+				YRP:msg("error", "[YRPCreateCharacter] failed - char: " .. tostring(char) .. " LastError: " .. YRP_SQL_Show_Last_Error())
 
 				return false
 			end
 		else
-			YRP.msg("note", "[YRPCreateCharacter] role not found!")
+			YRP:msg("note", "[YRPCreateCharacter] role not found!")
 
 			return false
 		end
@@ -864,7 +873,7 @@ net.Receive(
 	function(len, ply)
 		local tab = net.ReadTable()
 		if tab.rpname == nil then
-			YRP.msg("note", "[YRPCreateCharacter] FAILED, RPNAME is INVALID!")
+			YRP:msg("note", "[YRPCreateCharacter] FAILED, RPNAME is INVALID!")
 			net.Start("nws_yrp_create_own_character")
 			net.WriteBool(false)
 			net.WriteBool(true)
@@ -896,7 +905,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_LogOut")
+YRP:AddNetworkString("nws_yrp_LogOut")
 net.Receive(
 	"nws_yrp_LogOut",
 	function(len, ply)
@@ -918,7 +927,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("YRPResetCharLoadout")
+YRP:AddNetworkString("YRPResetCharLoadout")
 net.Receive(
 	"YRPResetCharLoadout",
 	function(len, ply)
@@ -926,11 +935,17 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_EnterWorld")
+YRP:AddNetworkString("nws_yrp_EnterWorld")
 net.Receive(
 	"nws_yrp_EnterWorld",
 	function(len, ply)
 		local cuid = net.ReadString()
+		if not YRPIsOwningCharacter(ply, cuid) then
+			YRP:msg("note", string.format("Exploiter [%s] found, ban him.", ply:SteamName()))
+
+			return
+		end
+
 		if ply:Alive() then
 			ply:KillSilent()
 		end
@@ -960,12 +975,12 @@ function SendBodyGroups(ply)
 				end
 			end
 		else
-			YRP.msg("note", "get_menu_bodygroups failed!")
+			YRP:msg("note", "get_menu_bodygroups failed!")
 		end
 	end
 end
 
-util.AddNetworkString("nws_yrp_get_menu_bodygroups")
+YRP:AddNetworkString("nws_yrp_get_menu_bodygroups")
 net.Receive(
 	"nws_yrp_get_menu_bodygroups",
 	function(len, ply)
@@ -979,7 +994,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_inv_bg_up")
+YRP:AddNetworkString("nws_yrp_inv_bg_up")
 net.Receive(
 	"nws_yrp_inv_bg_up",
 	function(len, ply)
@@ -996,7 +1011,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_inv_bg_do")
+YRP:AddNetworkString("nws_yrp_inv_bg_do")
 net.Receive(
 	"nws_yrp_inv_bg_do",
 	function(len, ply)
@@ -1013,7 +1028,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_inv_skin_up")
+YRP:AddNetworkString("nws_yrp_inv_skin_up")
 net.Receive(
 	"nws_yrp_inv_skin_up",
 	function(len, ply)
@@ -1030,7 +1045,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_inv_skin_do")
+YRP:AddNetworkString("nws_yrp_inv_skin_do")
 net.Receive(
 	"nws_yrp_inv_skin_do",
 	function(len, ply)
@@ -1047,7 +1062,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_inv_pm_up")
+YRP:AddNetworkString("nws_yrp_inv_pm_up")
 net.Receive(
 	"nws_yrp_inv_pm_up",
 	function(len, ply)
@@ -1074,7 +1089,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_inv_pm_do")
+YRP:AddNetworkString("nws_yrp_inv_pm_do")
 net.Receive(
 	"nws_yrp_inv_pm_do",
 	function(len, ply)
@@ -1101,7 +1116,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_warning_up")
+YRP:AddNetworkString("nws_yrp_warning_up")
 net.Receive(
 	"nws_yrp_warning_up",
 	function(len, ply)
@@ -1125,7 +1140,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_warning_dn")
+YRP:AddNetworkString("nws_yrp_warning_dn")
 net.Receive(
 	"nws_yrp_warning_dn",
 	function(len, ply)
@@ -1149,7 +1164,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_violation_up")
+YRP:AddNetworkString("nws_yrp_violation_up")
 net.Receive(
 	"nws_yrp_violation_up",
 	function(len, ply)
@@ -1173,7 +1188,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_violation_dn")
+YRP:AddNetworkString("nws_yrp_violation_dn")
 net.Receive(
 	"nws_yrp_violation_dn",
 	function(len, ply)
@@ -1197,7 +1212,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_change_rpname")
+YRP:AddNetworkString("nws_yrp_change_rpname")
 net.Receive(
 	"nws_yrp_change_rpname",
 	function(len, ply)
@@ -1208,7 +1223,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_set_rpname")
+YRP:AddNetworkString("nws_yrp_set_rpname")
 net.Receive(
 	"nws_yrp_set_rpname",
 	function(len, ply)
@@ -1222,7 +1237,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_set_idcardid")
+YRP:AddNetworkString("nws_yrp_set_idcardid")
 net.Receive(
 	"nws_yrp_set_idcardid",
 	function(len, ply)
@@ -1246,7 +1261,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_removearrests")
+YRP:AddNetworkString("nws_yrp_removearrests")
 net.Receive(
 	"nws_yrp_removearrests",
 	function(len, ply)
@@ -1265,7 +1280,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_get_licenses_player")
+YRP:AddNetworkString("nws_yrp_get_licenses_player")
 net.Receive(
 	"nws_yrp_get_licenses_player",
 	function(len, ply)
@@ -1278,7 +1293,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_givelicense")
+YRP:AddNetworkString("nws_yrp_givelicense")
 net.Receive(
 	"nws_yrp_givelicense",
 	function(len, ply)
@@ -1291,7 +1306,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_removelicense")
+YRP:AddNetworkString("nws_yrp_removelicense")
 net.Receive(
 	"nws_yrp_removelicense",
 	function(len, ply)
@@ -1313,11 +1328,11 @@ function YRPSetAllCharsToDefaultRole(ply)
 			}, "SteamID = '" .. ply:YRPSteamID() .. "'"
 		)
 
-		YRP.msg("note", "SET PLAYER TO DEFAULT ROLE -> players_start_with_default_role: enabled")
+		YRP:msg("note", "SET PLAYER TO DEFAULT ROLE -> players_start_with_default_role: enabled")
 	end
 end
 
-util.AddNetworkString("nws_yrp_setting_characters")
+YRP:AddNetworkString("nws_yrp_setting_characters")
 net.Receive(
 	"nws_yrp_setting_characters",
 	function(len, ply)
@@ -1407,8 +1422,8 @@ function YRPGiveSpecs(ply)
 	ply:SetYRPString("spec_pms", tab.pms)
 end
 
-util.AddNetworkString("nws_yrp_reopen_givespec")
-util.AddNetworkString("nws_yrp_char_add_spec")
+YRP:AddNetworkString("nws_yrp_reopen_givespec")
+YRP:AddNetworkString("nws_yrp_char_add_spec")
 net.Receive(
 	"nws_yrp_char_add_spec",
 	function(len, ply)
@@ -1458,7 +1473,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_char_rem_spec")
+YRP:AddNetworkString("nws_yrp_char_rem_spec")
 net.Receive(
 	"nws_yrp_char_rem_spec",
 	function(len, ply)

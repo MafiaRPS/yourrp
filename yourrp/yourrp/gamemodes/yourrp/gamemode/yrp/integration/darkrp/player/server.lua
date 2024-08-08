@@ -46,7 +46,7 @@ function Player:changeTeam(team, force, suppressNotification)
 			self:KillSilent()
 		end
 
-		YRPSetRole(self, team, false, nil)
+		YRPSetRole("changeTeam", self, team, false, nil)
 		if GetGlobalYRPBool("bool_players_die_on_role_switch", false) then
 			self:Spawn()
 		end
@@ -188,7 +188,7 @@ function Player:setSelfDarkRPVar(variable, value, target)
 		elseif variable == "energy" then
 			self:YRPSetHunger(value)
 		elseif variable == "jailpos" then
-			YRP.msg("note", "Use yourrp jailpos swep!")
+			YRP:msg("note", "Use yourrp jailpos swep!")
 		elseif variable == "AFK" then
 			target:SetAFK(true)
 		elseif variable == "AFKDemoted" then
