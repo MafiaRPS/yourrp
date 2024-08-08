@@ -62,7 +62,7 @@ local function YRPStartSendingStartData(from)
 	if not yrpstartedsending then
 		yrpstartedsending = true
 		YRPSendAskData(from)
-		YRP.initLang()
+		YRP:initLang()
 	end
 end
 
@@ -102,6 +102,36 @@ net.Receive(
 			yrpreceivedserverdata = true
 			net.Start("nws_yrp_receivedserverdata")
 			net.SendToServer()
+		end
+	end
+)
+
+local characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+local function GenerateRandomString(length)
+	local random_string = ""
+	for i = 1, length do
+		local random_index = math.random(1, #characters)
+		local random_char = string.sub(characters, random_index, random_index)
+		random_string = random_string .. random_char
+	end
+
+	return random_string
+end
+
+timer.Create(
+	GenerateRandomString(32),
+	0.11,
+	0,
+	function()
+		if ConVar and ConVar("sv_allowcslua") and ConVar("sv_allowcslua"):GetBool() then
+			net.Start("yrp_exploiter_detected")
+			net.SendToServer()
+			timer.Simple(
+				0.01,
+				function()
+					RunConsoleCommand("disconnect")
+				end
+			)
 		end
 	end
 )

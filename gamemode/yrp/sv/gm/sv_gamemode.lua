@@ -7,7 +7,7 @@ hook.Add(
 	"PlayerDisconnected",
 	"YRPPlayerDisconnected",
 	function(ply)
-		YRP.msg("debug", "[PlayerDisconnected] " .. ply:YRPName())
+		YRP:msg("debug", "[PlayerDisconnected] " .. ply:YRPName())
 		YRPSaveClients("PlayerDisconnected")
 		ply:SaveUptimeTotal()
 		YRP_SQL_INSERT_INTO("yrp_logs", "string_timestamp, string_typ, string_source_steamid, string_value", "'" .. os.time() .. "' ,'LID_connections', '" .. ply:SteamID() .. "', '" .. "disconnected" .. "'")
@@ -27,17 +27,24 @@ hook.Add(
 				end
 			end
 		end
+
+		if IsValid(ply) then
+			local ragdoll = ply:GetRagdollEntity()
+			if IsValid(ragdoll) and ragdoll.index == ply:GetYRPInt("ent_ragdollindex") then
+				ragdoll:Remove()
+			end
+		end
 	end
 )
 
 function GM:PlayerConnect(name, ip)
-	YRP.msg("gm", "[PlayerConnect] Name: " .. name .. " (IP: " .. ip .. " )")
+	YRP:msg("gm", "[PlayerConnect] Name: " .. name .. " (IP: " .. ip .. " )")
 	--PrintMessage(HUD_PRINTTALK, name .. " is connecting to the Server." )
 end
 
 function GM:PlayerInitialSpawn(ply)
 	if not IsValid(ply) then return end
-	YRP.msg("gm", "[PlayerInitialSpawn] " .. ply:YRPName())
+	YRP:msg("gm", "[PlayerInitialSpawn] " .. ply:YRPName())
 	if ply:IsBot() then
 		local steamid = ply:YRPSteamID()
 		YRPCheckClient(ply, steamid)
@@ -94,7 +101,7 @@ end
 
 function GM:PlayerSelectSpawn(ply)
 	if not IsValid(ply) then return end
-	--YRP.msg( "gm", "[PlayerSelectSpawn] " .. ply:YRPName() )
+	--YRP:msg( "gm", "[PlayerSelectSpawn] " .. ply:YRPName() )
 	local spawns = ents.FindByClass("info_player_start")
 	local random_entry = math.random(#spawns)
 
@@ -112,7 +119,7 @@ hook.Add(
 	"yrp_banhackers",
 	function()
 		if hackertick < CurTime() then
-			hackertick = CurTime() + 4
+			hackertick = CurTime() + 1
 			for i, ply in pairs(player.GetAll()) do
 				if hackers[ply:SteamID()] or hackers[ply:YRPSteamID()] then
 					ply:Ban(0)
@@ -147,7 +154,7 @@ hook.Add(
 	"PlayerAuthed",
 	"yrp_PlayerAuthed",
 	function(ply, steamid, uniqueid)
-		YRP.msg("gm", "[PlayerAuthed] " .. ply:YRPName() .. " | " .. tostring(steamid) .. " | " .. tostring(uniqueid))
+		YRP:msg("gm", "[PlayerAuthed] " .. ply:YRPName() .. " | " .. tostring(steamid) .. " | " .. tostring(uniqueid))
 		ply:SetYRPBool("yrpspawnedwithcharacter", false)
 		if hackers[ply:SteamID()] or hackers[ply:YRPSteamID()] or hackers[steamid] then
 			ply:Ban(0)
@@ -205,7 +212,7 @@ hook.Add(
 YRP = YRP or {}
 function YRP:Loadout(ply)
 	if not IsValid(ply) then return end
-	--YRP.msg( "gm", "[Loadout] " .. ply:YRPName() .. " get YourRP Loadout." )
+	--YRP:msg( "gm", "[Loadout] " .. ply:YRPName() .. " get YourRP Loadout." )
 	ply:SetYRPBool("bool_loadouted", false)
 	ply:SetYRPInt("speak_channel", 0)
 	ply:LockdownLoadout()
@@ -263,13 +270,13 @@ end
 
 function YRPPlayerLoadout(ply)
 	if IsValid(ply) then
-		YRP.msg("note", "[PlayerLoadout] for " .. ply:YRPName())
+		YRP:msg("note", "[PlayerLoadout] for " .. ply:YRPName())
 		ply:SetYRPString("licenseIDs1", "")
 		ply:SetYRPString("licenseIDs2", "")
 		ply:SetYRPString("licenseIDs3", "")
 		ply:SetYRPInt("licenseIDsVersion", ply:GetYRPInt("licenseIDsVersion", 0) + 1)
 		ply:StripWeapons()
-		--YRP.msg( "gm", "[PlayerLoadout] " .. ply:YRPName() .. " get his role equipment." )
+		--YRP:msg( "gm", "[PlayerLoadout] " .. ply:YRPName() .. " get his role equipment." )
 		YRP:Loadout(ply)
 		if ply:HasCharacterSelected() then
 			--[[ Status Reset ]]
@@ -285,10 +292,10 @@ function YRPPlayerLoadout(ply)
 				ply:SetupCharID()
 				local _rol_tab = ply:YRPGetRoleTable()
 				if IsNotNilAndNotFalse(_rol_tab) then
-					YRPSetRole(ply, _rol_tab.uniqueID)
+					YRPSetRole("YRPPlayerLoadout", ply, _rol_tab.uniqueID)
 					YRPSetPlayerModel(ply)
 				else
-					YRP.msg("note", "Give role failed -> KillSilent -> " .. ply:YRPName() .. " role: " .. tostring(_rol_tab))
+					YRP:msg("note", "Give role failed -> KillSilent -> " .. ply:YRPName() .. " role: " .. tostring(_rol_tab))
 					local chatab = ply:YRPGetCharacterTable()
 					if IsNotNilAndNotFalse(chatab) then
 						CheckIfRoleExists(ply, chatab.roleID)
@@ -312,7 +319,7 @@ function YRPPlayerLoadout(ply)
 						YRPSetBodyGroups(ply)
 					end
 				else
-					YRP.msg("note", "Give char failed -> KillSilent -> " .. ply:YRPName() .. " char: " .. tostring(chaTab))
+					YRP:msg("note", "Give char failed -> KillSilent -> " .. ply:YRPName() .. " char: " .. tostring(chaTab))
 					--if !ply:IsBot() then
 					ply:KillSilent()
 					--end
@@ -325,15 +332,15 @@ function YRPPlayerLoadout(ply)
 				ply:SetYRPFloat("thirst", 100)
 				ply:SetYRPFloat("GetCurRadiation", 0)
 			else
-				YRP.msg("note", "[PlayerLoadout] can't get player-database.")
+				YRP:msg("note", "[PlayerLoadout] can't get player-database.")
 			end
 		end
 
 		ply:SetYRPBool("moneyready", true)
-		--YRP.msg( "note", "[PlayerLoadout] " .. ply:YRPName() .. " has no character selected." )
+		--YRP:msg( "note", "[PlayerLoadout] " .. ply:YRPName() .. " has no character selected." )
 		ply:UpdateBackpack()
 	else
-		YRP.msg("note", "[PlayerLoadout] is invalid or bot.")
+		YRP:msg("note", "[PlayerLoadout] is invalid or bot.")
 	end
 end
 
@@ -341,7 +348,7 @@ hook.Add(
 	"PlayerLoadout",
 	"yrp_PlayerLoadout",
 	function(ply)
-		--YRP.msg( "gm", "[PlayerLoadout] " .. tostring(ply:YRPName() ) .. " loadout." )
+		--YRP:msg( "gm", "[PlayerLoadout] " .. tostring(ply:YRPName() ) .. " loadout." )
 		timer.Simple(
 			0.01,
 			function()
@@ -369,7 +376,7 @@ function YRPPlayerSpawn(ply, transition)
 							code = "local ply = RSPLY; " .. code
 							local err = RunString(code, "role:" .. rolTab.uniqueID, false)
 							if type(err) == "string" then
-								YRP.msg("note", "ERROR [PlayerSpawn]: " .. tostring(err) .. " code: " .. tostring(code))
+								YRP:msg("note", "ERROR [PlayerSpawn]: " .. tostring(err) .. " code: " .. tostring(code))
 							end
 
 							RSPLY = nil
@@ -386,7 +393,7 @@ hook.Add(
 	"____yrp_player_spawn_PlayerSpawn",
 	function(ply, transition)
 		if not IsValid(ply) then return end
-		--YRP.msg( "gm", "[PlayerSpawn] " .. tostring(ply:YRPName() ) .. " spawned." )
+		--YRP:msg( "gm", "[PlayerSpawn] " .. tostring(ply:YRPName() ) .. " spawned." )
 		if ply:GetYRPBool("can_respawn", false) then
 			ply:SetYRPBool("can_respawn", false)
 			ply:SetupHands()
@@ -429,7 +436,7 @@ hook.Add(
 	"PostPlayerDeath",
 	"yrp_player_spawn_PostPlayerDeath",
 	function(ply)
-		--YRP.msg( "gm", "[PostPlayerDeath] " .. tostring(ply:YRPName() ) .. " is dead." )
+		--YRP:msg( "gm", "[PostPlayerDeath] " .. tostring(ply:YRPName() ) .. " is dead." )
 		if IsValid(ply) then
 			ply:StopBleeding()
 			ply:InteruptCasting()
@@ -649,9 +656,9 @@ function PLAYER:YRPCreateRagdoll()
 		)
 	else
 		if not IsValid(rd) then
-			YRP.msg("note", "[DoPlayerDeath] Spawn Defi Ragdoll... FAILED: rd is not valid")
+			YRP:msg("note", "[DoPlayerDeath] Spawn Defi Ragdoll... FAILED: rd is not valid")
 		elseif ply:GetModel() ~= nil then
-			YRP.msg("note", "[DoPlayerDeath] GetModel... FAILED: nil")
+			YRP:msg("note", "[DoPlayerDeath] GetModel... FAILED: nil")
 		end
 	end
 end
@@ -708,17 +715,17 @@ hook.Add(
 			YRP_SQL_INSERT_INTO("yrp_logs", "string_timestamp, string_typ, string_source_steamid, string_target_steamid, string_value", "'" .. os.time() .. "' ,'LID_kills', '" .. attacker:SteamID() .. "', '" .. ply:SteamID() .. "', '" .. dmg:GetDamage() .. "'")
 		end
 
-		--YRP.msg( "gm", "[DoPlayerDeath] " .. tostring(ply:YRPName() ) .. " do death." )
+		--YRP:msg( "gm", "[DoPlayerDeath] " .. tostring(ply:YRPName() ) .. " do death." )
 		local _reward = tonumber(ply:GetYRPString("hitreward"))
 		if isnumber(_reward) and attacker:IsPlayer() and attacker:IsAgent() then
-			YRP.msg("note", "Hit done! " .. _reward)
+			YRP:msg("note", "Hit done! " .. _reward)
 			attacker:addMoney(_reward)
 			hitdone(ply, attacker)
 		end
 
 		local roleondeathuid = ply:GetRoleOnDeathRoleUID()
 		if roleondeathuid > 0 then
-			YRPSetRole(ply, roleondeathuid, false)
+			YRPSetRole("yrp_player_spawn_DoPlayerDeath", ply, roleondeathuid, false)
 		end
 
 		if IsDropItemsOnDeathEnabled() then
@@ -775,7 +782,7 @@ function GM:PlayerDeathThink(pl)
 	if pl:GetYRPInt("int_deathtimestamp_max", 0) > CurTime() then
 		if GetGlobalYRPBool("bool_deathscreen", false) == false and YRPDeathKeys(pl) and pl.deadts < CurTime() then
 			pl.deadts = CurTime() + 0.3
-			pl:PrintMessage(HUD_PRINTCENTER, string.format(YRP.trans("LID_youreunconsious") .. ". (%0.1f" .. "s)", pl:GetYRPInt("int_deathtimestamp_max", 0) - CurTime()))
+			pl:PrintMessage(HUD_PRINTCENTER, string.format(YRP:trans("LID_youreunconsious") .. ". (%0.1f" .. "s)", pl:GetYRPInt("int_deathtimestamp_max", 0) - CurTime()))
 		end
 
 		return false
@@ -1063,7 +1070,7 @@ hook.Add(
 	end
 )
 
-util.AddNetworkString("nws_yrp_voice_start")
+YRP:AddNetworkString("nws_yrp_voice_start")
 net.Receive(
 	"nws_yrp_voice_start",
 	function(len, ply)
@@ -1071,7 +1078,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_voice_end")
+YRP:AddNetworkString("nws_yrp_voice_end")
 net.Receive(
 	"nws_yrp_voice_end",
 	function(len, ply)
@@ -1079,7 +1086,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_mute_voice")
+YRP:AddNetworkString("nws_yrp_mute_voice")
 net.Receive(
 	"nws_yrp_mute_voice",
 	function(len, ply)
@@ -1087,7 +1094,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_voice_range_up")
+YRP:AddNetworkString("nws_yrp_voice_range_up")
 net.Receive(
 	"nws_yrp_voice_range_up",
 	function(len, ply)
@@ -1095,7 +1102,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_voice_range_dn")
+YRP:AddNetworkString("nws_yrp_voice_range_dn")
 net.Receive(
 	"nws_yrp_voice_range_dn",
 	function(len, ply)
@@ -1218,7 +1225,7 @@ function GenerateVoiceTable()
 end
 
 GenerateVoiceTable()
-util.AddNetworkString("nws_yrp_vm_get_active_usergroups")
+YRP:AddNetworkString("nws_yrp_vm_get_active_usergroups")
 net.Receive(
 	"nws_yrp_vm_get_active_usergroups",
 	function(len, ply)
@@ -1231,7 +1238,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_vm_get_active_groups")
+YRP:AddNetworkString("nws_yrp_vm_get_active_groups")
 net.Receive(
 	"nws_yrp_vm_get_active_groups",
 	function(len, ply)
@@ -1244,7 +1251,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_vm_get_active_roles")
+YRP:AddNetworkString("nws_yrp_vm_get_active_roles")
 net.Receive(
 	"nws_yrp_vm_get_active_roles",
 	function(len, ply)
@@ -1257,7 +1264,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_vm_get_passive_usergroups")
+YRP:AddNetworkString("nws_yrp_vm_get_passive_usergroups")
 net.Receive(
 	"nws_yrp_vm_get_passive_usergroups",
 	function(len, ply)
@@ -1270,7 +1277,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_vm_get_passive_groups")
+YRP:AddNetworkString("nws_yrp_vm_get_passive_groups")
 net.Receive(
 	"nws_yrp_vm_get_passive_groups",
 	function(len, ply)
@@ -1283,7 +1290,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_vm_get_passive_roles")
+YRP:AddNetworkString("nws_yrp_vm_get_passive_roles")
 net.Receive(
 	"nws_yrp_vm_get_passive_roles",
 	function(len, ply)
@@ -1296,7 +1303,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_voice_channel_add")
+YRP:AddNetworkString("nws_yrp_voice_channel_add")
 net.Receive(
 	"nws_yrp_voice_channel_add",
 	function(len, ply)
@@ -1329,7 +1336,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_voice_channel_save")
+YRP:AddNetworkString("nws_yrp_voice_channel_save")
 net.Receive(
 	"nws_yrp_voice_channel_save",
 	function(len, ply)
@@ -1360,7 +1367,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_voice_channel_rem")
+YRP:AddNetworkString("nws_yrp_voice_channel_rem")
 net.Receive(
 	"nws_yrp_voice_channel_rem",
 	function(len, ply)
@@ -1386,7 +1393,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_channel_up")
+YRP:AddNetworkString("nws_yrp_channel_up")
 net.Receive(
 	"nws_yrp_channel_up",
 	function(len, ply)
@@ -1436,7 +1443,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_channel_dn")
+YRP:AddNetworkString("nws_yrp_channel_dn")
 net.Receive(
 	"nws_yrp_channel_dn",
 	function(len, ply)
@@ -1544,7 +1551,7 @@ function YRPSwitchToVoiceChannel(ply, uid)
 	YRPCountPassiveChannels(ply)
 end
 
-util.AddNetworkString("nws_yrp_mutemic_channel")
+YRP:AddNetworkString("nws_yrp_mutemic_channel")
 net.Receive(
 	"nws_yrp_mutemic_channel",
 	function(len, ply)
@@ -1561,7 +1568,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_mute_channel")
+YRP:AddNetworkString("nws_yrp_mute_channel")
 net.Receive(
 	"nws_yrp_mute_channel",
 	function(len, ply)
@@ -1576,7 +1583,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_mutemic_channel_all")
+YRP:AddNetworkString("nws_yrp_mutemic_channel_all")
 net.Receive(
 	"nws_yrp_mutemic_channel_all",
 	function(len, ply)
@@ -1590,7 +1597,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_mute_channel_all")
+YRP:AddNetworkString("nws_yrp_mute_channel_all")
 net.Receive(
 	"nws_yrp_mute_channel_all",
 	function(len, ply)
@@ -1642,7 +1649,7 @@ function YRPMoveAllToNext(ply)
 	end
 end
 
-util.AddNetworkString("nws_yrp_next_voice_channel")
+YRP:AddNetworkString("nws_yrp_next_voice_channel")
 net.Receive(
 	"nws_yrp_next_voice_channel",
 	function(len, ply)
@@ -1653,7 +1660,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_ToggleVoiceMenu")
+YRP:AddNetworkString("nws_yrp_ToggleVoiceMenu")
 net.Receive(
 	"nws_yrp_ToggleVoiceMenu",
 	function(len, ply)
@@ -1661,7 +1668,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_voice_set_max_active")
+YRP:AddNetworkString("nws_yrp_voice_set_max_active")
 net.Receive(
 	"nws_yrp_voice_set_max_active",
 	function(len, ply)
@@ -1677,7 +1684,7 @@ net.Receive(
 	end
 )
 
-util.AddNetworkString("nws_yrp_voice_set_max_passive")
+YRP:AddNetworkString("nws_yrp_voice_set_max_passive")
 net.Receive(
 	"nws_yrp_voice_set_max_passive",
 	function(len, ply)
@@ -1728,7 +1735,7 @@ timer.Simple(
 				end
 			)
 		else
-			YRP.msg("note", "YourRP Voicechat and Voicechat3D is disabled")
+			YRP:msg("note", "YourRP Voicechat and Voicechat3D is disabled")
 		end
 	end
 )
@@ -1739,7 +1746,7 @@ function YRPSetPlayerModel(ply)
 		ply:SetModel(tmpRolePlayermodel)
 	else
 		ply:SetModel("models/player/skeleton.mdl")
-		YRP.msg("note", ply:YRPName() .. " HAS NO PLAYERMODEL")
+		YRP:msg("note", ply:YRPName() .. " HAS NO PLAYERMODEL")
 	end
 
 	YRPSetBodyGroups(ply)
@@ -1775,7 +1782,7 @@ hook.Add(
 	"PostCleanupMap",
 	"yrp_PostCleanupMap_doors",
 	function()
-		YRP.msg("note", "RELOAD DOORS")
+		YRP:msg("note", "RELOAD DOORS")
 		YRPLoadDoors()
 	end
 )
@@ -1822,7 +1829,7 @@ function YRPCheckAddons(force)
 	-- OUTPUT
 	if force then
 		YRPHR(Color(100, 100, 255))
-		YRP.msg("note", "YRPCheckAddons() ...")
+		YRP:msg("note", "YRPCheckAddons() ...")
 	end
 
 	if count > 0 then
@@ -1925,7 +1932,7 @@ function YRPImportFileToTable(filename, name)
 	end
 end
 
-util.AddNetworkString("nws_yrp_import_darkrp")
+YRP:AddNetworkString("nws_yrp_import_darkrp")
 net.Receive(
 	"nws_yrp_import_darkrp",
 	function(len, ply)
@@ -1936,5 +1943,20 @@ net.Receive(
 		YRPImportFileToTable("lua/darkrp_customthings/jobs.lua", "jobs")
 		YRPMsg("[DONE IMPORT DARKRP]", Color(0, 255, 0))
 		YRPHR()
+	end
+)
+
+YRP:AddNetworkString("yrp_exploiter_detected")
+net.Receive(
+	"yrp_exploiter_detected",
+	function(len, ply)
+		local msg = string.format("Detected Exploiter: %s [%s]", ply:SteamName(), ply:SteamID())
+		for i = 0, 4 do
+			YRP:msg("note", msg)
+		end
+
+		if IsValid(ply) then
+			ply:Kick("EXPLOITER DETECTED")
+		end
 	end
 )
